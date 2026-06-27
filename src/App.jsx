@@ -3,7 +3,7 @@ import {
   Camera, Speaker, Tent, Truck, MapPin, Users, Mic2, Lightbulb,
   Search, X, Check, Clock, Star, ChevronRight, LayoutGrid,
   ClipboardList, Plus, Trash2, ArrowLeft, BadgeCheck, Calendar,
-  Sun, Moon
+  Sun, Moon, Image, FileText, Briefcase, PartyPopper, Phone
 } from "lucide-react";
 
 /* ---------------------------------------------------------------
@@ -128,6 +128,11 @@ function catMeta(id) {
 ---------------------------------------------------------------- */
 
 export default function App() {
+  const [stage, setStage] = useState("landing"); // landing | onboard-customer | onboard-vendor | success | app
+  const [successRole, setSuccessRole] = useState(null); // "customer" | "vendor"
+  const [vendorProfile, setVendorProfile] = useState(null); // filled in by vendor onboarding
+  const [customerProfile, setCustomerProfile] = useState(null); // filled in by customer onboarding
+
   const [view, setView] = useState("customer"); // customer | vendor
   const [theme, setTheme] = useState("dark"); // dark | light
   const [activeCat, setActiveCat] = useState(null);
@@ -193,57 +198,111 @@ export default function App() {
 
   const total = cart.reduce((sum, c) => sum + c.vendor.rate, 0);
 
+  function finishCustomerOnboarding(profile) {
+    setCustomerProfile(profile);
+    setSuccessRole("customer");
+    setStage("success");
+  }
+
+  function finishVendorOnboarding(profile) {
+    setVendorProfile(profile);
+    setSuccessRole("vendor");
+    setStage("success");
+  }
+
+  function enterApp() {
+    setView(successRole === "vendor" ? "vendor" : "customer");
+    setStage("app");
+  }
+
   return (
     <div className="min-h-screen" data-theme={theme} style={ROOT_STYLE}>
       <style>{THEME_CSS}</style>
       <style>{FONT_IMPORT}</style>
-      <TopBar
-        view={view}
-        setView={setView}
-        cartCount={cart.length}
-        onCartClick={() => setShowCart(true)}
-        theme={theme}
-        setTheme={setTheme}
-      />
 
-      {view === "customer" ? (
-        <CustomerView
-          activeCat={activeCat}
-          setActiveCat={setActiveCat}
-          query={query}
-          setQuery={setQuery}
-          filtered={filtered}
-          isInCart={isInCart}
-          onSchedule={(vendor) => setPickerVendor(vendor)}
-          onAddBundle={addBundle}
-          cart={cart}
-        />
-      ) : (
-        <VendorDashboard />
-      )}
-
-      {pickerVendor && (
-        <SchedulePickerModal
-          vendor={pickerVendor}
-          existing={cart.find((c) => c.vendor.id === pickerVendor.id)}
-          onConfirm={(date, time) => confirmSchedule(pickerVendor, date, time)}
-          onClose={() => setPickerVendor(null)}
+      {stage === "landing" && (
+        <LandingChoice
+          theme={theme}
+          setTheme={setTheme}
+          onPickCustomer={() => setStage("onboard-customer")}
+          onPickVendor={() => setStage("onboard-vendor")}
+          onSkip={() => setStage("app")}
         />
       )}
 
-      {showCart && (
-        <RunOfShowDrawer
-          cart={cart}
-          total={total}
-          confirmedIds={confirmedIds}
-          toggleConfirm={toggleConfirm}
-          removeFromCart={removeFromCart}
-          onEditSchedule={(vendor) => {
-            setShowCart(false);
-            setPickerVendor(vendor);
-          }}
-          onClose={() => setShowCart(false)}
+      {stage === "onboard-customer" && (
+        <CustomerOnboarding
+          onBack={() => setStage("landing")}
+          onComplete={finishCustomerOnboarding}
         />
+      )}
+
+      {stage === "onboard-vendor" && (
+        <VendorOnboarding
+          onBack={() => setStage("landing")}
+          onComplete={finishVendorOnboarding}
+        />
+      )}
+
+      {stage === "success" && (
+        <OnboardingSuccess
+          role={successRole}
+          profile={successRole === "vendor" ? vendorProfile : customerProfile}
+          onContinue={enterApp}
+        />
+      )}
+
+      {stage === "app" && (
+        <>
+          <TopBar
+            view={view}
+            setView={setView}
+            cartCount={cart.length}
+            onCartClick={() => setShowCart(true)}
+            theme={theme}
+            setTheme={setTheme}
+          />
+
+          {view === "customer" ? (
+            <CustomerView
+              activeCat={activeCat}
+              setActiveCat={setActiveCat}
+              query={query}
+              setQuery={setQuery}
+              filtered={filtered}
+              isInCart={isInCart}
+              onSchedule={(vendor) => setPickerVendor(vendor)}
+              onAddBundle={addBundle}
+              cart={cart}
+            />
+          ) : (
+            <VendorDashboard vendorProfile={vendorProfile} />
+          )}
+
+          {pickerVendor && (
+            <SchedulePickerModal
+              vendor={pickerVendor}
+              existing={cart.find((c) => c.vendor.id === pickerVendor.id)}
+              onConfirm={(date, time) => confirmSchedule(pickerVendor, date, time)}
+              onClose={() => setPickerVendor(null)}
+            />
+          )}
+
+          {showCart && (
+            <RunOfShowDrawer
+              cart={cart}
+              total={total}
+              confirmedIds={confirmedIds}
+              toggleConfirm={toggleConfirm}
+              removeFromCart={removeFromCart}
+              onEditSchedule={(vendor) => {
+                setShowCart(false);
+                setPickerVendor(vendor);
+              }}
+              onClose={() => setShowCart(false)}
+            />
+          )}
+        </>
       )}
     </div>
   );
@@ -952,23 +1011,37 @@ const SAMPLE_BOOKINGS = [
   { id: "BK-2260", client: "Mara & Theo", item: "Livestream Rig", date: "Jun 19", status: "completed" },
 ];
 
-function VendorDashboard() {
+function VendorDashboard({ vendorProfile }) {
   const [tab, setTab] = useState("bookings");
+  const isNew = !!vendorProfile;
+  const displayName = vendorProfile?.businessName || "Northbeam AV Co.";
 
   return (
     <main className="max-w-6xl mx-auto px-5 pb-24 font-body">
       <section className="py-10 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
         <div>
           <div className="font-mono text-xs tracking-widest opacity-50 mb-2">VENDOR DESK</div>
-          <h1 className="font-display text-3xl font-semibold">Northbeam AV Co.</h1>
+          <h1 className="font-display text-3xl font-semibold">{displayName}</h1>
           <div className="flex items-center gap-3 mt-2 font-mono text-xs opacity-60">
-            <span className="flex items-center gap-1">
-              <Star size={11} fill="var(--accent)" stroke="none" /> 4.9 rating
-            </span>
-            <span>212 jobs completed</span>
-            <span className="flex items-center gap-1" style={{ color: "var(--success)" }}>
-              <BadgeCheck size={12} /> Verified
-            </span>
+            {isNew ? (
+              <>
+                <span>{catMeta(vendorProfile.category)?.tag || "NEW"}</span>
+                <span>{vendorProfile.serviceArea}</span>
+                <span className="flex items-center gap-1" style={{ color: "var(--accent)" }}>
+                  <Clock size={11} /> Pending verification
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="flex items-center gap-1">
+                  <Star size={11} fill="var(--accent)" stroke="none" /> 4.9 rating
+                </span>
+                <span>212 jobs completed</span>
+                <span className="flex items-center gap-1" style={{ color: "var(--success)" }}>
+                  <BadgeCheck size={12} /> Verified
+                </span>
+              </>
+            )}
           </div>
         </div>
         <button
@@ -978,6 +1051,20 @@ function VendorDashboard() {
           <Plus size={14} /> NEW LISTING
         </button>
       </section>
+
+      {isNew && (
+        <div
+          className="mt-5 px-4 py-3 rounded-sm border font-mono text-xs flex items-start gap-2.5"
+          style={{ borderColor: "var(--border)", background: "var(--card)", color: "var(--text-muted)" }}
+        >
+          <ClipboardList size={14} className="mt-0.5 flex-shrink-0" />
+          <span>
+            Your listing for <span style={{ color: "var(--text)" }}>{vendorProfile.tags?.join(", ") || "your gear"}</span> at
+            {" "}<span style={{ color: "var(--text)" }}>{fmtMoney(Number(vendorProfile.rate) || 0)}/{vendorProfile.unit}</span> is
+            under review. This is sample data shown until your first real booking comes through.
+          </span>
+        </div>
+      )}
 
       <div className="flex gap-1 mt-6 mb-6">
         {[
@@ -1059,6 +1146,686 @@ function VendorListings() {
         <Plus size={20} />
         <span className="text-sm">Add another listing</span>
       </button>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   LANDING CHOICE SCREEN
+---------------------------------------------------------------- */
+
+function LandingChoice({ theme, setTheme, onPickCustomer, onPickVendor, onSkip }) {
+  return (
+    <div className="min-h-screen flex flex-col font-body">
+      <div className="flex items-center justify-between px-5 py-5 max-w-4xl mx-auto w-full">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 rounded-sm flex items-center justify-center font-mono text-xs font-bold"
+            style={{ background: "var(--accent)", color: "var(--accent-text)" }}
+          >
+            ▣
+          </div>
+          <div className="font-display text-lg font-semibold leading-none tracking-wide">
+            CALLSHEET
+          </div>
+        </div>
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-sm border text-xs font-mono transition-colors"
+          style={{ borderColor: "var(--border)", color: "var(--text)" }}
+        >
+          {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+          {theme === "dark" ? "LIGHT" : "DARK"}
+        </button>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center px-5">
+        <div className="max-w-3xl w-full py-10">
+          <div className="text-center mb-12">
+            <div className="font-mono text-xs tracking-widest opacity-50 mb-3">
+              WELCOME TO THE PRODUCTION SHEET
+            </div>
+            <h1 className="font-display text-4xl md:text-5xl font-semibold leading-[1.05] mb-3">
+              Who's calling this show?
+            </h1>
+            <p className="font-body text-sm md:text-base opacity-70 max-w-md mx-auto">
+              Tell us which side of the booking you're on, and we'll get you set up.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <RoleCard
+              tag="ROLE-A"
+              icon={PartyPopper}
+              title="I'm booking an event"
+              desc="Browse vendors, build a run of show, and lock in dates for your event — wedding, festival, corporate offsite, anything."
+              cta="GET STARTED AS A CUSTOMER"
+              onClick={onPickCustomer}
+            />
+            <RoleCard
+              tag="ROLE-B"
+              icon={Briefcase}
+              title="I'm a vendor"
+              desc="List your equipment, crew, grounds, or services. Set your rates, lead time, and service area, then start getting booked."
+              cta="GET STARTED AS A VENDOR"
+              onClick={onPickVendor}
+            />
+          </div>
+
+          <div className="text-center mt-8">
+            <button
+              onClick={onSkip}
+              className="font-mono text-xs opacity-40 hover:opacity-70 transition-opacity underline"
+            >
+              Skip onboarding — go straight to the app
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RoleCard({ tag, icon: Icon, title, desc, cta, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-left p-6 rounded-sm border transition-all group"
+      style={{ borderColor: "var(--border)", background: "var(--card)" }}
+    >
+      <div
+        className="flex items-center justify-between font-mono text-[10px] tracking-widest mb-5"
+        style={{ color: "var(--text-muted)" }}
+      >
+        <span>{tag}</span>
+        <ChevronRight size={14} className="opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+      </div>
+      <div
+        className="w-11 h-11 rounded-sm flex items-center justify-center mb-4"
+        style={{ background: "var(--bg)", border: "1px solid var(--border)" }}
+      >
+        <Icon size={20} style={{ color: "var(--accent)" }} />
+      </div>
+      <div className="font-display text-xl font-semibold mb-2">{title}</div>
+      <p className="text-sm opacity-70 leading-relaxed mb-5">{desc}</p>
+      <div
+        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm font-mono text-[11px] font-medium tracking-wide"
+        style={{ background: "var(--accent)", color: "var(--accent-text)" }}
+      >
+        {cta} <ChevronRight size={12} />
+      </div>
+    </button>
+  );
+}
+
+/* ---------------------------------------------------------------
+   CUSTOMER ONBOARDING (quick, 3 steps)
+---------------------------------------------------------------- */
+
+const EVENT_TYPES = ["Wedding", "Corporate", "Festival", "Birthday / Private", "Graduation", "Other"];
+
+function CustomerOnboarding({ onBack, onComplete }) {
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState({
+    fullName: "",
+    phone: "",
+    eventType: "",
+    eventDate: "",
+    location: "",
+  });
+
+  const steps = ["Your details", "Your event", "Confirm"];
+  const totalSteps = steps.length;
+
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function next() {
+    if (step < totalSteps - 1) setStep(step + 1);
+    else onComplete(form);
+  }
+  function back() {
+    if (step === 0) onBack();
+    else setStep(step - 1);
+  }
+
+  const canAdvance =
+    (step === 0 && form.fullName.trim().length > 1) ||
+    (step === 1 && form.eventType) ||
+    step === 2;
+
+  return (
+    <OnboardingShell
+      eyebrow="CUSTOMER SETUP"
+      title="Let's get your event on the sheet."
+      steps={steps}
+      currentStep={step}
+      onBack={back}
+    >
+      {step === 0 && (
+        <div className="space-y-4">
+          <FieldLabel label="Full name" required />
+          <TextInput
+            icon={Users}
+            value={form.fullName}
+            onChange={(v) => update("fullName", v)}
+            placeholder="e.g. Ama Boateng"
+          />
+          <FieldLabel label="Phone number" />
+          <TextInput
+            icon={Phone}
+            value={form.phone}
+            onChange={(v) => update("phone", v)}
+            placeholder="e.g. 024 123 4567"
+          />
+        </div>
+      )}
+
+      {step === 1 && (
+        <div className="space-y-5">
+          <div>
+            <FieldLabel label="What are you planning?" required />
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {EVENT_TYPES.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => update("eventType", t)}
+                  className="px-3 py-2.5 rounded-sm font-mono text-xs text-left transition-colors"
+                  style={{
+                    background: form.eventType === t ? "var(--accent)" : "var(--card)",
+                    color: form.eventType === t ? "var(--accent-text)" : "var(--text-soft)",
+                    border: `1px solid ${form.eventType === t ? "var(--accent)" : "var(--border)"}`,
+                  }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <FieldLabel label="Target date (optional)" />
+            <TextInput
+              icon={Calendar}
+              type="date"
+              value={form.eventDate}
+              onChange={(v) => update("eventDate", v)}
+            />
+          </div>
+          <div>
+            <FieldLabel label="City / area (optional)" />
+            <TextInput
+              icon={MapPin}
+              value={form.location}
+              onChange={(v) => update("location", v)}
+              placeholder="e.g. Accra, East Legon"
+            />
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="space-y-3">
+          <div className="font-mono text-xs tracking-widest opacity-50 mb-2">REVIEW</div>
+          <SummaryRow label="Name" value={form.fullName || "—"} />
+          <SummaryRow label="Phone" value={form.phone || "—"} />
+          <SummaryRow label="Event type" value={form.eventType || "—"} />
+          <SummaryRow label="Target date" value={form.eventDate || "Not set yet"} />
+          <SummaryRow label="Location" value={form.location || "Not set yet"} />
+        </div>
+      )}
+
+      <OnboardingFooter
+        step={step}
+        totalSteps={totalSteps}
+        canAdvance={canAdvance}
+        onNext={next}
+        nextLabel={step === totalSteps - 1 ? "CREATE ACCOUNT" : "CONTINUE"}
+      />
+    </OnboardingShell>
+  );
+}
+
+/* ---------------------------------------------------------------
+   VENDOR ONBOARDING (full, 5 steps)
+---------------------------------------------------------------- */
+
+const UNIT_OPTIONS = ["day", "event", "hr/person"];
+
+function VendorOnboarding({ onBack, onComplete }) {
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState({
+    businessName: "",
+    contactName: "",
+    phone: "",
+    category: "",
+    tags: [],
+    tagInput: "",
+    rate: "",
+    unit: "day",
+    leadHours: 24,
+    serviceArea: "",
+    bio: "",
+    hasPhotos: false,
+  });
+
+  const steps = ["Business", "What you offer", "Pricing & lead time", "Service area & bio", "Confirm"];
+  const totalSteps = steps.length;
+
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function addTag() {
+    const t = form.tagInput.trim();
+    if (!t || form.tags.includes(t)) return;
+    setForm((prev) => ({ ...prev, tags: [...prev.tags, t], tagInput: "" }));
+  }
+  function removeTag(t) {
+    setForm((prev) => ({ ...prev, tags: prev.tags.filter((x) => x !== t) }));
+  }
+
+  function next() {
+    if (step < totalSteps - 1) setStep(step + 1);
+    else onComplete(form);
+  }
+  function back() {
+    if (step === 0) onBack();
+    else setStep(step - 1);
+  }
+
+  const canAdvance =
+    (step === 0 && form.businessName.trim().length > 1) ||
+    (step === 1 && form.category && form.tags.length > 0) ||
+    (step === 2 && form.rate && Number(form.rate) > 0) ||
+    (step === 3 && form.serviceArea.trim().length > 1) ||
+    step === 4;
+
+  return (
+    <OnboardingShell
+      eyebrow="VENDOR SETUP"
+      title="Build your listing for the sheet."
+      steps={steps}
+      currentStep={step}
+      onBack={back}
+    >
+      {step === 0 && (
+        <div className="space-y-4">
+          <FieldLabel label="Business / crew name" required />
+          <TextInput
+            icon={Briefcase}
+            value={form.businessName}
+            onChange={(v) => update("businessName", v)}
+            placeholder="e.g. Northbeam AV Co."
+          />
+          <FieldLabel label="Contact name" />
+          <TextInput
+            icon={Users}
+            value={form.contactName}
+            onChange={(v) => update("contactName", v)}
+            placeholder="e.g. Kwame Asante"
+          />
+          <FieldLabel label="Phone number" />
+          <TextInput
+            icon={Phone}
+            value={form.phone}
+            onChange={(v) => update("phone", v)}
+            placeholder="e.g. 024 123 4567"
+          />
+        </div>
+      )}
+
+      {step === 1 && (
+        <div className="space-y-5">
+          <div>
+            <FieldLabel label="Department" required />
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => update("category", c.id)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-sm font-mono text-xs text-left transition-colors"
+                  style={{
+                    background: form.category === c.id ? "var(--accent)" : "var(--card)",
+                    color: form.category === c.id ? "var(--accent-text)" : "var(--text-soft)",
+                    border: `1px solid ${form.category === c.id ? "var(--accent)" : "var(--border)"}`,
+                  }}
+                >
+                  <c.icon size={14} />
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <FieldLabel label="Gear / services (add a few tags)" required />
+            <div className="flex gap-2 mt-2">
+              <TextInput
+                icon={Tent}
+                value={form.tagInput}
+                onChange={(v) => update("tagInput", v)}
+                placeholder="e.g. LED Wall"
+                onEnter={addTag}
+              />
+              <button
+                onClick={addTag}
+                className="px-4 rounded-sm font-mono text-xs shrink-0"
+                style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--text)" }}
+              >
+                ADD
+              </button>
+            </div>
+            {form.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {form.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="font-mono text-[10px] px-2 py-1 rounded-sm flex items-center gap-1.5"
+                    style={{ background: "var(--card)", color: "var(--text-soft)", border: "1px solid var(--border)" }}
+                  >
+                    {t}
+                    <button onClick={() => removeTag(t)} className="opacity-50 hover:opacity-100">
+                      <X size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="space-y-5">
+          <div>
+            <FieldLabel label="Rate (GH₵)" required />
+            <TextInput
+              icon={FileText}
+              type="number"
+              value={form.rate}
+              onChange={(v) => update("rate", v)}
+              placeholder="e.g. 3800"
+            />
+          </div>
+          <div>
+            <FieldLabel label="Billed per" />
+            <div className="flex gap-2 mt-2">
+              {UNIT_OPTIONS.map((u) => (
+                <button
+                  key={u}
+                  onClick={() => update("unit", u)}
+                  className="px-3 py-2 rounded-sm font-mono text-xs transition-colors"
+                  style={{
+                    background: form.unit === u ? "var(--accent)" : "var(--card)",
+                    color: form.unit === u ? "var(--accent-text)" : "var(--text-soft)",
+                    border: `1px solid ${form.unit === u ? "var(--accent)" : "var(--border)"}`,
+                  }}
+                >
+                  /{u}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <FieldLabel label={`Minimum lead time — ${leadLabel(form.leadHours)}`} />
+            <input
+              type="range"
+              min="12"
+              max="336"
+              step="12"
+              value={form.leadHours}
+              onChange={(e) => update("leadHours", Number(e.target.value))}
+              className="w-full mt-3 accent-current"
+              style={{ color: "var(--accent)" }}
+            />
+            <div className="flex justify-between font-mono text-[10px] opacity-40 mt-1">
+              <span>12H</span>
+              <span>1WK</span>
+              <span>2WK</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="space-y-5">
+          <div>
+            <FieldLabel label="Service area" required />
+            <TextInput
+              icon={MapPin}
+              value={form.serviceArea}
+              onChange={(v) => update("serviceArea", v)}
+              placeholder="e.g. Greater Accra, within 30km"
+            />
+          </div>
+          <div>
+            <FieldLabel label="Short bio" />
+            <textarea
+              value={form.bio}
+              onChange={(e) => update("bio", e.target.value)}
+              placeholder="Tell customers what makes your setup or crew worth booking…"
+              rows={4}
+              className="w-full mt-2 px-3 py-2.5 rounded-sm font-body text-sm outline-none resize-none"
+              style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--text)" }}
+            />
+          </div>
+          <div>
+            <FieldLabel label="Photos" />
+            <button
+              onClick={() => update("hasPhotos", !form.hasPhotos)}
+              className="w-full mt-2 px-4 py-6 rounded-sm border-2 border-dashed flex flex-col items-center justify-center gap-2 font-mono text-xs transition-colors"
+              style={{
+                borderColor: form.hasPhotos ? "var(--success)" : "var(--border)",
+                color: form.hasPhotos ? "var(--success)" : "var(--text-muted)",
+              }}
+            >
+              {form.hasPhotos ? <Check size={18} /> : <Image size={18} />}
+              {form.hasPhotos ? "PHOTOS ATTACHED (SAMPLE)" : "TAP TO ADD PHOTOS"}
+            </button>
+            <div className="text-[11px] opacity-40 mt-1.5 font-body">
+              Prototype only — file upload isn't wired up yet.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 4 && (
+        <div className="space-y-3">
+          <div className="font-mono text-xs tracking-widest opacity-50 mb-2">REVIEW</div>
+          <SummaryRow label="Business" value={form.businessName || "—"} />
+          <SummaryRow label="Contact" value={form.contactName || "—"} />
+          <SummaryRow label="Department" value={catMeta(form.category)?.label || "—"} />
+          <SummaryRow label="Tags" value={form.tags.join(", ") || "—"} />
+          <SummaryRow label="Rate" value={form.rate ? `${fmtMoney(Number(form.rate))}/${form.unit}` : "—"} />
+          <SummaryRow label="Lead time" value={leadLabel(form.leadHours)} />
+          <SummaryRow label="Service area" value={form.serviceArea || "—"} />
+        </div>
+      )}
+
+      <OnboardingFooter
+        step={step}
+        totalSteps={totalSteps}
+        canAdvance={canAdvance}
+        onNext={next}
+        nextLabel={step === totalSteps - 1 ? "SUBMIT LISTING" : "CONTINUE"}
+      />
+    </OnboardingShell>
+  );
+}
+
+/* ---------------------------------------------------------------
+   SHARED ONBOARDING UI
+---------------------------------------------------------------- */
+
+function OnboardingShell({ eyebrow, title, steps, currentStep, onBack, children }) {
+  return (
+    <div className="min-h-screen flex flex-col font-body">
+      <div className="max-w-xl mx-auto w-full px-5 py-8 flex-1 flex flex-col">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 font-mono text-xs opacity-50 hover:opacity-90 transition-opacity mb-6 self-start"
+        >
+          <ArrowLeft size={13} /> BACK
+        </button>
+
+        <div className="font-mono text-xs tracking-widest opacity-50 mb-2">{eyebrow}</div>
+        <h1 className="font-display text-2xl md:text-3xl font-semibold leading-tight mb-6">{title}</h1>
+
+        <StepProgress steps={steps} currentStep={currentStep} />
+
+        <div className="mt-7 flex-1">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function StepProgress({ steps, currentStep }) {
+  return (
+    <div>
+      <div className="flex gap-1.5 mb-2.5">
+        {steps.map((_, i) => (
+          <div
+            key={i}
+            className="h-1 flex-1 rounded-full transition-colors"
+            style={{ background: i <= currentStep ? "var(--accent)" : "var(--border)" }}
+          />
+        ))}
+      </div>
+      <div className="font-mono text-[10px] tracking-widest opacity-50">
+        STEP {currentStep + 1} OF {steps.length} — {steps[currentStep].toUpperCase()}
+      </div>
+    </div>
+  );
+}
+
+function FieldLabel({ label, required }) {
+  return (
+    <label className="font-mono text-[11px] tracking-wide" style={{ color: "var(--text-muted)" }}>
+      {label} {required && <span style={{ color: "var(--accent)" }}>*</span>}
+    </label>
+  );
+}
+
+function TextInput({ icon: Icon, value, onChange, placeholder, type = "text", onEnter }) {
+  return (
+    <div
+      className="flex items-center gap-2 px-3 py-2.5 rounded-sm border mt-2"
+      style={{ borderColor: "var(--border)", background: "var(--card)" }}
+    >
+      {Icon && <Icon size={15} className="opacity-50 shrink-0" />}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && onEnter) {
+            e.preventDefault();
+            onEnter();
+          }
+        }}
+        placeholder={placeholder}
+        className="font-body text-sm bg-transparent outline-none flex-1 placeholder:opacity-40 min-w-0"
+        style={{ color: "var(--text)" }}
+      />
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }) {
+  return (
+    <div
+      className="flex items-center justify-between px-3.5 py-2.5 rounded-sm border"
+      style={{ borderColor: "var(--border)", background: "var(--card)" }}
+    >
+      <span className="font-mono text-[11px] tracking-wide opacity-50">{label.toUpperCase()}</span>
+      <span className="font-body text-sm text-right" style={{ color: "var(--text)" }}>{value}</span>
+    </div>
+  );
+}
+
+function OnboardingFooter({ step, totalSteps, canAdvance, onNext, nextLabel }) {
+  return (
+    <div className="mt-8 pt-5 border-t" style={{ borderColor: "var(--border)" }}>
+      <button
+        disabled={!canAdvance}
+        onClick={onNext}
+        className="w-full py-3 rounded-sm font-mono text-sm font-semibold tracking-wide transition-opacity disabled:opacity-40 flex items-center justify-center gap-1.5"
+        style={{ background: "var(--accent)", color: "var(--accent-text)" }}
+      >
+        {nextLabel} <ChevronRight size={15} />
+      </button>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   ONBOARDING SUCCESS SCREEN
+---------------------------------------------------------------- */
+
+function OnboardingSuccess({ role, profile, onContinue }) {
+  const isVendor = role === "vendor";
+  return (
+    <div className="min-h-screen flex items-center justify-center px-5 font-body">
+      <div className="max-w-md w-full text-center">
+        <div
+          className="w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center"
+          style={{ background: "var(--success)" }}
+        >
+          <Check size={28} style={{ color: "var(--success-text)" }} />
+        </div>
+
+        <div className="font-mono text-xs tracking-widest opacity-50 mb-2">
+          {isVendor ? "LISTING SUBMITTED" : "ACCOUNT CREATED"}
+        </div>
+        <h1 className="font-display text-2xl md:text-3xl font-semibold mb-3">
+          {isVendor
+            ? `Welcome to the crew, ${profile?.businessName || "vendor"}.`
+            : `You're all set, ${profile?.fullName?.split(" ")[0] || "there"}.`}
+        </h1>
+        <p className="text-sm opacity-70 leading-relaxed mb-8">
+          {isVendor
+            ? "Your listing is in for review. While that's pending, you can preview your vendor desk and see how bookings will look."
+            : "Your run of show is ready to build. Browse vendors, pick dates, and assemble your crew."}
+        </p>
+
+        <div
+          className="rounded-sm border px-4 py-4 mb-8 text-left"
+          style={{ borderColor: "var(--border)", background: "var(--card)" }}
+        >
+          <div className="font-mono text-[10px] tracking-widest opacity-50 mb-2.5">
+            {isVendor ? "WHAT'S NEXT" : "QUICK TIPS"}
+          </div>
+          <ul className="space-y-2 text-sm">
+            {(isVendor
+              ? [
+                  "Your listing is marked pending while sample data shows in your dashboard",
+                  "Add more listings any time from the Vendor Desk",
+                  "Bookings will appear in your dashboard once customers schedule you",
+                ]
+              : [
+                  "Use Pick Date on any vendor card to lock in a slot",
+                  "Check out Package Bundles for pre-grouped, discounted crews",
+                  "Your Run of Show tracks everything until you're ready to request bookings",
+                ]
+            ).map((tip, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="font-mono text-xs mt-0.5" style={{ color: "var(--accent)" }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span style={{ color: "var(--text-soft)" }}>{tip}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <button
+          onClick={onContinue}
+          className="w-full py-3 rounded-sm font-mono text-sm font-semibold tracking-wide flex items-center justify-center gap-1.5"
+          style={{ background: "var(--accent)", color: "var(--accent-text)" }}
+        >
+          {isVendor ? "GO TO VENDOR DESK" : "START BOOKING"} <ChevronRight size={15} />
+        </button>
+      </div>
     </div>
   );
 }
