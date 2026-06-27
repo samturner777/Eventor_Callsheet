@@ -2,7 +2,8 @@ import React, { useState, useMemo } from "react";
 import {
   Camera, Speaker, Tent, Truck, MapPin, Users, Mic2, Lightbulb,
   Search, X, Check, Clock, Star, ChevronRight, LayoutGrid,
-  ClipboardList, Plus, Trash2, ArrowLeft, BadgeCheck, Calendar
+  ClipboardList, Plus, Trash2, ArrowLeft, BadgeCheck, Calendar,
+  Sun, Moon
 } from "lucide-react";
 
 /* ---------------------------------------------------------------
@@ -128,6 +129,7 @@ function catMeta(id) {
 
 export default function App() {
   const [view, setView] = useState("customer"); // customer | vendor
+  const [theme, setTheme] = useState("dark"); // dark | light
   const [activeCat, setActiveCat] = useState(null);
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState([]); // [{ vendor, date, time }]
@@ -192,13 +194,16 @@ export default function App() {
   const total = cart.reduce((sum, c) => sum + c.vendor.rate, 0);
 
   return (
-    <div className="min-h-screen" style={{ background: "#16181D", color: "#F5F0E6" }}>
+    <div className="min-h-screen" data-theme={theme} style={ROOT_STYLE}>
+      <style>{THEME_CSS}</style>
       <style>{FONT_IMPORT}</style>
       <TopBar
         view={view}
         setView={setView}
         cartCount={cart.length}
         onCartClick={() => setShowCart(true)}
+        theme={theme}
+        setTheme={setTheme}
       />
 
       {view === "customer" ? (
@@ -244,6 +249,48 @@ export default function App() {
   );
 }
 
+// The root needs an inline background/color too (not just the CSS vars block)
+// so the very first paint isn't unstyled white before the <style> tag applies.
+const ROOT_STYLE = { background: "var(--bg)", color: "var(--text)" };
+
+/* ---------------------------------------------------------------
+   THEME DEFINITIONS
+   Dark = original "call sheet" look. Light = white-background,
+   higher-contrast variant for easier reading.
+---------------------------------------------------------------- */
+
+const THEME_CSS = `
+  [data-theme="dark"] {
+    --bg: #16181D;
+    --card: #1C1F26;
+    --border: #33363D;
+    --border-soft: #262931;
+    --text: #F5F0E6;
+    --text-muted: #A39C8E;
+    --text-soft: #cfc9bc;
+    --accent: #FF6B47;
+    --accent-text: #16181D;
+    --success: #4F9C82;
+    --success-fill: #4F9C82;
+    --success-text: #0E2018;
+  }
+
+  [data-theme="light"] {
+    --bg: #FFFFFF;
+    --card: #F7F5F0;
+    --border: #DCD6C9;
+    --border-soft: #E8E3D8;
+    --text: #1A1A1A;
+    --text-muted: #5C5648;
+    --text-soft: #3A372F;
+    --accent: #D5391F;
+    --accent-text: #FFFFFF;
+    --success: #1F6B52;
+    --success-fill: #1F6B52;
+    --success-text: #FFFFFF;
+  }
+`;
+
 const FONT_IMPORT = `
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
   .font-display { font-family: 'Oswald', sans-serif; letter-spacing: 0.01em; }
@@ -255,17 +302,17 @@ const FONT_IMPORT = `
    TOP BAR
 ---------------------------------------------------------------- */
 
-function TopBar({ view, setView, cartCount, onCartClick }) {
+function TopBar({ view, setView, cartCount, onCartClick, theme, setTheme }) {
   return (
     <header
       className="font-body sticky top-0 z-40 border-b"
-      style={{ background: "#16181D", borderColor: "#33363D" }}
+      style={{ background: "var(--bg)", borderColor: "var(--border)" }}
     >
       <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div
             className="w-8 h-8 rounded-sm flex items-center justify-center font-mono text-xs font-bold"
-            style={{ background: "#E8472B", color: "#16181D" }}
+            style={{ background: "var(--accent)", color: "var(--accent-text)" }}
           >
             ▣
           </div>
@@ -280,16 +327,26 @@ function TopBar({ view, setView, cartCount, onCartClick }) {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            title={theme === "dark" ? "Switch to light background" : "Switch to dark background"}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-sm border text-xs font-mono transition-colors"
+            style={{ borderColor: "var(--border)", color: "var(--text)" }}
+          >
+            {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            {theme === "dark" ? "LIGHT MODE" : "DARK MODE"}
+          </button>
+
           <div
             className="flex rounded-sm border overflow-hidden text-xs font-mono"
-            style={{ borderColor: "#33363D" }}
+            style={{ borderColor: "var(--border)" }}
           >
             <button
               onClick={() => setView("customer")}
               className="px-3 py-1.5 transition-colors"
               style={{
-                background: view === "customer" ? "#F5F0E6" : "transparent",
-                color: view === "customer" ? "#16181D" : "#8B8378",
+                background: view === "customer" ? "var(--text)" : "transparent",
+                color: view === "customer" ? "var(--bg)" : "var(--text-muted)",
               }}
             >
               BOOK
@@ -298,8 +355,8 @@ function TopBar({ view, setView, cartCount, onCartClick }) {
               onClick={() => setView("vendor")}
               className="px-3 py-1.5 transition-colors"
               style={{
-                background: view === "vendor" ? "#F5F0E6" : "transparent",
-                color: view === "vendor" ? "#16181D" : "#8B8378",
+                background: view === "vendor" ? "var(--text)" : "transparent",
+                color: view === "vendor" ? "var(--bg)" : "var(--text-muted)",
               }}
             >
               VENDOR
@@ -309,15 +366,15 @@ function TopBar({ view, setView, cartCount, onCartClick }) {
           {view === "customer" && (
             <button
               onClick={onCartClick}
-              className="relative flex items-center gap-2 px-3 py-1.5 rounded-sm border text-xs font-mono transition-colors hover:border-[#E8472B]"
-              style={{ borderColor: "#33363D", color: "#F5F0E6" }}
+              className="relative flex items-center gap-2 px-3 py-1.5 rounded-sm border text-xs font-mono transition-colors hover:border-[var(--accent)]"
+              style={{ borderColor: "var(--border)", color: "var(--text)" }}
             >
               <ClipboardList size={14} />
               RUN OF SHOW
               {cartCount > 0 && (
                 <span
                   className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
-                  style={{ background: "#E8472B", color: "#16181D" }}
+                  style={{ background: "var(--accent)", color: "var(--accent-text)" }}
                 >
                   {cartCount}
                 </span>
@@ -338,7 +395,7 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
   return (
     <main className="max-w-6xl mx-auto px-5 pb-24">
       {/* Hero */}
-      <section className="py-12 border-b" style={{ borderColor: "#33363D" }}>
+      <section className="py-12 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="font-mono text-xs tracking-widest opacity-50 mb-3">
           PROD. SHEET — NO. {new Date().getFullYear()}.0622
         </div>
@@ -354,7 +411,7 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
         <div className="mt-7 max-w-md">
           <div
             className="flex items-center gap-2 px-3 py-2.5 rounded-sm border"
-            style={{ borderColor: "#33363D", background: "#1C1F26" }}
+            style={{ borderColor: "var(--border)", background: "var(--card)" }}
           >
             <Search size={15} className="opacity-50" />
             <input
@@ -362,7 +419,7 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search vendor, gear, or location…"
               className="font-mono text-sm bg-transparent outline-none flex-1 placeholder:opacity-40"
-              style={{ color: "#F5F0E6" }}
+              style={{ color: "var(--text)" }}
             />
             {query && (
               <button onClick={() => setQuery("")} className="opacity-50 hover:opacity-100">
@@ -374,7 +431,7 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
       </section>
 
       {/* Bundles */}
-      <section className="py-8 border-b" style={{ borderColor: "#33363D" }}>
+      <section className="py-8 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="flex items-baseline justify-between mb-4">
           <div className="font-mono text-xs tracking-widest opacity-50">PACKAGE BUNDLES</div>
           <div className="font-mono text-xs opacity-40">Pre-grouped crews, discounted</div>
@@ -424,7 +481,7 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
             {filtered.length} VENDOR{filtered.length !== 1 ? "S" : ""} AVAILABLE
           </div>
           {activeCat && (
-            <div className="font-mono text-xs" style={{ color: "#E8472B" }}>
+            <div className="font-mono text-xs" style={{ color: "var(--accent)" }}>
               {catMeta(activeCat)?.tag}
             </div>
           )}
@@ -433,7 +490,7 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
         {filtered.length === 0 ? (
           <div
             className="py-16 text-center rounded-sm border font-body"
-            style={{ borderColor: "#33363D" }}
+            style={{ borderColor: "var(--border)" }}
           >
             <div className="font-display text-lg mb-1">No match on the sheet.</div>
             <div className="text-sm opacity-60">
@@ -467,11 +524,11 @@ function BundleCard({ bundle, onAdd, cart }) {
   return (
     <div
       className="rounded-sm border font-body overflow-hidden"
-      style={{ borderColor: "#33363D", background: "#1C1F26" }}
+      style={{ borderColor: "var(--border)", background: "var(--card)" }}
     >
       <div
         className="flex items-center justify-between px-3.5 py-2 font-mono text-[10px] tracking-wider border-b"
-        style={{ borderColor: "#33363D", color: "#E8472B" }}
+        style={{ borderColor: "var(--border)", color: "var(--accent)" }}
       >
         <span>{bundle.tag}</span>
         <span>{bundle.discountPct}% OFF BUNDLE</span>
@@ -485,7 +542,7 @@ function BundleCard({ bundle, onAdd, cart }) {
             <span
               key={v.id}
               className="font-mono text-[10px] px-2 py-1 rounded-sm flex items-center gap-1"
-              style={{ background: "#16181D", color: "#8B8378", border: "1px solid #33363D" }}
+              style={{ background: "var(--bg)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
             >
               {catMeta(v.cat)?.tag} {v.name}
             </span>
@@ -502,8 +559,8 @@ function BundleCard({ bundle, onAdd, cart }) {
             disabled={allInCart}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-mono font-medium transition-colors disabled:cursor-default"
             style={{
-              background: allInCart ? "#2D5C4D" : "#E8472B",
-              color: allInCart ? "#F5F0E6" : "#16181D",
+              background: allInCart ? "var(--success)" : "var(--accent)",
+              color: allInCart ? "var(--text)" : "var(--bg)",
             }}
           >
             {allInCart ? (
@@ -531,19 +588,19 @@ function CategoryTile({ label, tag, icon: Icon, active, onClick }) {
       onClick={onClick}
       className="text-left p-3.5 rounded-sm border transition-all font-body group"
       style={{
-        borderColor: active ? "#E8472B" : "#33363D",
-        background: active ? "#1C1F26" : "transparent",
+        borderColor: active ? "var(--accent)" : "var(--border)",
+        background: active ? "var(--card)" : "transparent",
       }}
     >
       <div className="flex items-center justify-between mb-2">
-        <Icon size={18} style={{ color: active ? "#E8472B" : "#8B8378" }} />
+        <Icon size={18} style={{ color: active ? "var(--accent)" : "var(--text-muted)" }} />
         <span
           className="font-mono text-[10px] tracking-wider opacity-40 group-hover:opacity-70"
         >
           {tag}
         </span>
       </div>
-      <div className="text-sm font-medium" style={{ color: active ? "#F5F0E6" : "#cfc9bc" }}>
+      <div className="text-sm font-medium" style={{ color: active ? "var(--text)" : "var(--text-soft)" }}>
         {label}
       </div>
     </button>
@@ -557,12 +614,12 @@ function VendorCard({ vendor, inCart, cartEntry, onSchedule }) {
   return (
     <div
       className="rounded-sm border font-body overflow-hidden"
-      style={{ borderColor: "#33363D", background: "#1C1F26" }}
+      style={{ borderColor: "var(--border)", background: "var(--card)" }}
     >
       {/* label strip */}
       <div
         className="flex items-center justify-between px-3.5 py-2 font-mono text-[10px] tracking-wider border-b"
-        style={{ borderColor: "#33363D", color: "#8B8378" }}
+        style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
       >
         <span>{cat?.tag}</span>
         <span className="flex items-center gap-1">
@@ -575,14 +632,14 @@ function VendorCard({ vendor, inCart, cartEntry, onSchedule }) {
           <div className="font-display text-base font-medium leading-tight flex items-center gap-1.5">
             {vendor.name}
             {vendor.verified && (
-              <BadgeCheck size={14} style={{ color: "#2D5C4D" }} />
+              <BadgeCheck size={14} style={{ color: "var(--success)" }} />
             )}
           </div>
         </div>
 
         <div className="flex items-center gap-3 text-xs opacity-70 mb-3 font-mono">
           <span className="flex items-center gap-1">
-            <Star size={11} fill="#E8472B" stroke="none" /> {vendor.rating}
+            <Star size={11} fill="var(--accent)" stroke="none" /> {vendor.rating}
           </span>
           <span>{vendor.jobs} jobs</span>
           <span className="flex items-center gap-1">
@@ -595,7 +652,7 @@ function VendorCard({ vendor, inCart, cartEntry, onSchedule }) {
             <span
               key={t}
               className="font-mono text-[10px] px-2 py-1 rounded-sm"
-              style={{ background: "#16181D", color: "#8B8378", border: "1px solid #33363D" }}
+              style={{ background: "var(--bg)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
             >
               {t}
             </span>
@@ -605,7 +662,7 @@ function VendorCard({ vendor, inCart, cartEntry, onSchedule }) {
         {scheduled && (
           <div
             className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 rounded-sm font-mono text-[11px]"
-            style={{ background: "#16181D", border: "1px solid #2D5C4D", color: "#9fd4c0" }}
+            style={{ background: "var(--bg)", border: "1px solid var(--success)", color: "var(--success-text)" }}
           >
             <Calendar size={11} /> {fmtDate(cartEntry.date)} · {cartEntry.time}
           </div>
@@ -620,8 +677,8 @@ function VendorCard({ vendor, inCart, cartEntry, onSchedule }) {
             onClick={onSchedule}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-mono font-medium transition-colors"
             style={{
-              background: inCart ? "#2D5C4D" : "#E8472B",
-              color: inCart ? "#F5F0E6" : "#16181D",
+              background: inCart ? "var(--success)" : "var(--accent)",
+              color: inCart ? "var(--text)" : "var(--bg)",
             }}
           >
             {inCart ? (
@@ -656,11 +713,11 @@ function SchedulePickerModal({ vendor, existing, onConfirm, onClose }) {
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.65)" }} onClick={onClose} />
       <div
         className="relative w-full max-w-md rounded-sm border font-body"
-        style={{ background: "#1C1F26", borderColor: "#33363D" }}
+        style={{ background: "var(--card)", borderColor: "var(--border)" }}
       >
         <div
           className="flex items-center justify-between px-5 py-4 border-b"
-          style={{ borderColor: "#33363D" }}
+          style={{ borderColor: "var(--border)" }}
         >
           <div>
             <div className="font-mono text-[10px] tracking-widest opacity-50 mb-1">
@@ -684,9 +741,9 @@ function SchedulePickerModal({ vendor, existing, onConfirm, onClose }) {
                   onClick={() => setSelectedDate(d)}
                   className="px-2 py-2.5 rounded-sm font-mono text-[11px] text-center transition-colors"
                   style={{
-                    background: active ? "#E8472B" : "#16181D",
-                    color: active ? "#16181D" : "#cfc9bc",
-                    border: `1px solid ${active ? "#E8472B" : "#33363D"}`,
+                    background: active ? "var(--accent)" : "var(--bg)",
+                    color: active ? "var(--bg)" : "var(--text-soft)",
+                    border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
                   }}
                 >
                   {fmtDate(d)}
@@ -705,9 +762,9 @@ function SchedulePickerModal({ vendor, existing, onConfirm, onClose }) {
                   onClick={() => setSelectedTime(t)}
                   className="px-2 py-2.5 rounded-sm font-mono text-[11px] text-center transition-colors"
                   style={{
-                    background: active ? "#E8472B" : "#16181D",
-                    color: active ? "#16181D" : "#cfc9bc",
-                    border: `1px solid ${active ? "#E8472B" : "#33363D"}`,
+                    background: active ? "var(--accent)" : "var(--bg)",
+                    color: active ? "var(--bg)" : "var(--text-soft)",
+                    border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
                   }}
                 >
                   {t}
@@ -720,12 +777,12 @@ function SchedulePickerModal({ vendor, existing, onConfirm, onClose }) {
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t" style={{ borderColor: "#33363D" }}>
+        <div className="px-5 py-4 border-t" style={{ borderColor: "var(--border)" }}>
           <button
             disabled={!canConfirm}
             onClick={() => canConfirm && onConfirm(selectedDate, selectedTime)}
             className="w-full py-3 rounded-sm font-mono text-sm font-semibold tracking-wide transition-opacity disabled:opacity-40"
-            style={{ background: "#E8472B", color: "#16181D" }}
+            style={{ background: "var(--accent)", color: "var(--accent-text)" }}
           >
             {existing?.date ? "UPDATE BOOKING" : "ADD TO RUN OF SHOW"}
           </button>
@@ -751,11 +808,11 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
       />
       <div
         className="relative w-full max-w-md h-full flex flex-col font-body"
-        style={{ background: "#1C1F26", borderLeft: "1px solid #33363D" }}
+        style={{ background: "var(--card)", borderLeft: "1px solid var(--border)" }}
       >
         <div
           className="flex items-center justify-between px-5 py-4 border-b"
-          style={{ borderColor: "#33363D" }}
+          style={{ borderColor: "var(--border)" }}
         >
           <div>
             <div className="font-display text-lg font-semibold">Run of Show</div>
@@ -795,8 +852,8 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
                       key={v.id}
                       className="rounded-sm border px-3.5 py-3"
                       style={{
-                        borderColor: needsDate ? "#E8472B" : confirmed ? "#2D5C4D" : "#33363D",
-                        background: "#16181D",
+                        borderColor: needsDate ? "var(--accent)" : confirmed ? "var(--success)" : "var(--border)",
+                        background: "var(--bg)",
                       }}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -815,7 +872,7 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
                         </div>
                         <button
                           onClick={() => removeFromCart(v.id)}
-                          className="opacity-40 hover:opacity-100 hover:text-[#E8472B] transition-colors"
+                          className="opacity-40 hover:opacity-100 hover:text-[var(--accent)] transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -826,8 +883,8 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
                         className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-sm font-mono text-[11px] tracking-wide transition-colors"
                         style={{
                           background: "transparent",
-                          border: `1px solid ${needsDate ? "#E8472B" : "#33363D"}`,
-                          color: needsDate ? "#E8472B" : "#cfc9bc",
+                          border: `1px solid ${needsDate ? "var(--accent)" : "var(--border)"}`,
+                          color: needsDate ? "var(--accent)" : "var(--text-soft)",
                         }}
                       >
                         <Calendar size={12} />
@@ -839,9 +896,9 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
                         disabled={needsDate}
                         className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-sm font-mono text-[11px] tracking-wide transition-colors disabled:opacity-30"
                         style={{
-                          background: confirmed ? "#2D5C4D" : "transparent",
-                          border: confirmed ? "none" : "1px solid #33363D",
-                          color: confirmed ? "#F5F0E6" : "#8B8378",
+                          background: confirmed ? "var(--success)" : "transparent",
+                          border: confirmed ? "none" : "1px solid var(--border)",
+                          color: confirmed ? "var(--text)" : "var(--text-muted)",
                         }}
                       >
                         {confirmed ? (
@@ -860,7 +917,7 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
         </div>
 
         {cart.length > 0 && (
-          <div className="px-5 py-4 border-t" style={{ borderColor: "#33363D" }}>
+          <div className="px-5 py-4 border-t" style={{ borderColor: "var(--border)" }}>
             <div className="flex items-center justify-between mb-3 font-mono text-sm">
               <span className="opacity-60">ESTIMATED TOTAL</span>
               <span className="text-lg font-semibold">{fmtMoney(total)}</span>
@@ -868,7 +925,7 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
             <button
               disabled={!allScheduled}
               className="w-full py-3 rounded-sm font-mono text-sm font-semibold tracking-wide disabled:opacity-40"
-              style={{ background: "#E8472B", color: "#16181D" }}
+              style={{ background: "var(--accent)", color: "var(--accent-text)" }}
             >
               REQUEST BOOKINGS
             </button>
@@ -900,23 +957,23 @@ function VendorDashboard() {
 
   return (
     <main className="max-w-6xl mx-auto px-5 pb-24 font-body">
-      <section className="py-10 border-b flex items-center justify-between" style={{ borderColor: "#33363D" }}>
+      <section className="py-10 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
         <div>
           <div className="font-mono text-xs tracking-widest opacity-50 mb-2">VENDOR DESK</div>
           <h1 className="font-display text-3xl font-semibold">Northbeam AV Co.</h1>
           <div className="flex items-center gap-3 mt-2 font-mono text-xs opacity-60">
             <span className="flex items-center gap-1">
-              <Star size={11} fill="#E8472B" stroke="none" /> 4.9 rating
+              <Star size={11} fill="var(--accent)" stroke="none" /> 4.9 rating
             </span>
             <span>212 jobs completed</span>
-            <span className="flex items-center gap-1" style={{ color: "#2D5C4D" }}>
+            <span className="flex items-center gap-1" style={{ color: "var(--success)" }}>
               <BadgeCheck size={12} /> Verified
             </span>
           </div>
         </div>
         <button
           className="flex items-center gap-2 px-4 py-2 rounded-sm font-mono text-xs font-medium"
-          style={{ background: "#E8472B", color: "#16181D" }}
+          style={{ background: "var(--accent)", color: "var(--accent-text)" }}
         >
           <Plus size={14} /> NEW LISTING
         </button>
@@ -932,9 +989,9 @@ function VendorDashboard() {
             onClick={() => setTab(t.id)}
             className="px-4 py-2 rounded-sm font-mono text-xs tracking-wide transition-colors"
             style={{
-              background: tab === t.id ? "#1C1F26" : "transparent",
-              color: tab === t.id ? "#F5F0E6" : "#8B8378",
-              border: `1px solid ${tab === t.id ? "#33363D" : "transparent"}`,
+              background: tab === t.id ? "var(--card)" : "transparent",
+              color: tab === t.id ? "var(--text)" : "var(--text-muted)",
+              border: `1px solid ${tab === t.id ? "var(--border)" : "transparent"}`,
             }}
           >
             {t.label.toUpperCase()}
@@ -949,15 +1006,15 @@ function VendorDashboard() {
 
 function VendorBookings() {
   const statusColor = {
-    pending: "#E8472B",
-    confirmed: "#2D5C4D",
-    completed: "#8B8378",
+    pending: "var(--accent)",
+    confirmed: "var(--success)",
+    completed: "var(--text-muted)",
   };
   return (
-    <div className="rounded-sm border overflow-hidden" style={{ borderColor: "#33363D" }}>
+    <div className="rounded-sm border overflow-hidden" style={{ borderColor: "var(--border)" }}>
       <div
         className="grid grid-cols-12 px-4 py-2.5 font-mono text-[10px] tracking-widest opacity-50 border-b"
-        style={{ borderColor: "#33363D", background: "#1C1F26" }}
+        style={{ borderColor: "var(--border)", background: "var(--card)" }}
       >
         <div className="col-span-2">ID</div>
         <div className="col-span-4">CLIENT</div>
@@ -969,10 +1026,10 @@ function VendorBookings() {
         <div
           key={b.id}
           className="grid grid-cols-12 px-4 py-3.5 font-mono text-xs items-center border-b last:border-b-0"
-          style={{ borderColor: "#262931" }}
+          style={{ borderColor: "var(--border-soft)" }}
         >
           <div className="col-span-2 opacity-60">{b.id}</div>
-          <div className="col-span-4 font-body text-sm" style={{ color: "#F5F0E6" }}>
+          <div className="col-span-4 font-body text-sm" style={{ color: "var(--text)" }}>
             {b.client}
           </div>
           <div className="col-span-3 opacity-70">{b.item}</div>
@@ -997,7 +1054,7 @@ function VendorListings() {
       ))}
       <button
         className="rounded-sm border-2 border-dashed flex flex-col items-center justify-center gap-2 py-10 font-body opacity-50 hover:opacity-80 transition-opacity"
-        style={{ borderColor: "#33363D" }}
+        style={{ borderColor: "var(--border)" }}
       >
         <Plus size={20} />
         <span className="text-sm">Add another listing</span>
