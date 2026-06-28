@@ -367,33 +367,33 @@ function TopBar({ view, setView, cartCount, onCartClick, theme, setTheme }) {
       className="font-body sticky top-0 z-40 border-b"
       style={{ background: "var(--bg)", borderColor: "var(--border)" }}
     >
-      <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
+      <div className="max-w-6xl mx-auto px-3 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <div
-            className="w-8 h-8 rounded-sm flex items-center justify-center font-mono text-xs font-bold"
+            className="w-8 h-8 rounded-sm flex items-center justify-center font-mono text-xs font-bold shrink-0"
             style={{ background: "var(--accent)", color: "var(--accent-text)" }}
           >
             ▣
           </div>
-          <div>
-            <div className="font-display text-lg font-semibold leading-none tracking-wide">
+          <div className="min-w-0">
+            <div className="font-display text-base sm:text-lg font-semibold leading-none tracking-wide truncate">
               CALLSHEET
             </div>
-            <div className="font-mono text-[10px] tracking-widest opacity-50 leading-none mt-0.5">
+            <div className="hidden sm:block font-mono text-[10px] tracking-widest opacity-50 leading-none mt-0.5">
               EVENT PRODUCTION MARKET
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             title={theme === "dark" ? "Switch to light background" : "Switch to dark background"}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-sm border text-xs font-mono transition-colors"
+            className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-sm border text-xs font-mono transition-colors"
             style={{ borderColor: "var(--border)", color: "var(--text)" }}
           >
             {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-            {theme === "dark" ? "LIGHT MODE" : "DARK MODE"}
+            <span className="hidden md:inline">{theme === "dark" ? "LIGHT MODE" : "DARK MODE"}</span>
           </button>
 
           <div
@@ -402,7 +402,7 @@ function TopBar({ view, setView, cartCount, onCartClick, theme, setTheme }) {
           >
             <button
               onClick={() => setView("customer")}
-              className="px-3 py-1.5 transition-colors"
+              className="px-2.5 sm:px-3 py-1.5 transition-colors"
               style={{
                 background: view === "customer" ? "var(--text)" : "transparent",
                 color: view === "customer" ? "var(--bg)" : "var(--text-muted)",
@@ -412,7 +412,7 @@ function TopBar({ view, setView, cartCount, onCartClick, theme, setTheme }) {
             </button>
             <button
               onClick={() => setView("vendor")}
-              className="px-3 py-1.5 transition-colors"
+              className="px-2.5 sm:px-3 py-1.5 transition-colors"
               style={{
                 background: view === "vendor" ? "var(--text)" : "transparent",
                 color: view === "vendor" ? "var(--bg)" : "var(--text-muted)",
@@ -425,11 +425,11 @@ function TopBar({ view, setView, cartCount, onCartClick, theme, setTheme }) {
           {view === "customer" && (
             <button
               onClick={onCartClick}
-              className="relative flex items-center gap-2 px-3 py-1.5 rounded-sm border text-xs font-mono transition-colors hover:border-[var(--accent)]"
+              className="relative flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-sm border text-xs font-mono transition-colors hover:border-[var(--accent)]"
               style={{ borderColor: "var(--border)", color: "var(--text)" }}
             >
               <ClipboardList size={14} />
-              RUN OF SHOW
+              <span className="hidden md:inline">RUN OF SHOW</span>
               {cartCount > 0 && (
                 <span
                   className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
@@ -452,13 +452,13 @@ function TopBar({ view, setView, cartCount, onCartClick, theme, setTheme }) {
 
 function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isInCart, onSchedule, onAddBundle, cart }) {
   return (
-    <main className="max-w-6xl mx-auto px-5 pb-24">
+    <main className="max-w-6xl mx-auto px-4 sm:px-5 pb-24">
       {/* Hero */}
-      <section className="py-12 border-b" style={{ borderColor: "var(--border)" }}>
+      <section className="py-8 sm:py-12 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="font-mono text-xs tracking-widest opacity-50 mb-3">
           PROD. SHEET — NO. {new Date().getFullYear()}.0622
         </div>
-        <h1 className="font-display text-4xl md:text-5xl font-semibold leading-[1.05] mb-3 max-w-2xl">
+        <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold leading-[1.08] mb-3 max-w-2xl">
           Book your crew like you're calling the show.
         </h1>
         <p className="font-body text-sm md:text-base opacity-70 max-w-lg">
@@ -467,21 +467,21 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
         </p>
 
         {/* Search */}
-        <div className="mt-7 max-w-md">
+        <div className="mt-6 sm:mt-7 max-w-md">
           <div
             className="flex items-center gap-2 px-3 py-2.5 rounded-sm border"
             style={{ borderColor: "var(--border)", background: "var(--card)" }}
           >
-            <Search size={15} className="opacity-50" />
+            <Search size={15} className="opacity-50 shrink-0" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search vendor, gear, or location…"
-              className="font-mono text-sm bg-transparent outline-none flex-1 placeholder:opacity-40"
+              className="font-mono text-sm bg-transparent outline-none flex-1 placeholder:opacity-40 min-w-0"
               style={{ color: "var(--text)" }}
             />
             {query && (
-              <button onClick={() => setQuery("")} className="opacity-50 hover:opacity-100">
+              <button onClick={() => setQuery("")} className="opacity-50 hover:opacity-100 shrink-0">
                 <X size={14} />
               </button>
             )}
@@ -490,12 +490,12 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
       </section>
 
       {/* Bundles */}
-      <section className="py-8 border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="flex items-baseline justify-between mb-4">
+      <section className="py-6 sm:py-8 border-b" style={{ borderColor: "var(--border)" }}>
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-4">
           <div className="font-mono text-xs tracking-widest opacity-50">PACKAGE BUNDLES</div>
           <div className="font-mono text-xs opacity-40">Pre-grouped crews, discounted</div>
         </div>
-        <div className="grid md:grid-cols-2 gap-3">
+        <div className="grid sm:grid-cols-2 gap-3">
           {BUNDLES.map((b) => (
             <BundleCard
               key={b.id}
@@ -508,11 +508,11 @@ function CustomerView({ activeCat, setActiveCat, query, setQuery, filtered, isIn
       </section>
 
       {/* Categories */}
-      <section className="py-8">
+      <section className="py-6 sm:py-8">
         <div className="font-mono text-xs tracking-widest opacity-50 mb-4">
           DEPARTMENTS
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5">
           <CategoryTile
             label="All"
             tag="ALL"
@@ -608,18 +608,18 @@ function BundleCard({ bundle, onAdd, cart }) {
           ))}
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="font-mono">
-            <span className="text-lg font-semibold">{fmtMoney(price)}</span>
+            <span className="text-base sm:text-lg font-semibold">{fmtMoney(price)}</span>
             <span className="text-xs opacity-40 line-through ml-1.5">{fmtMoney(raw)}</span>
           </div>
           <button
             onClick={onAdd}
             disabled={allInCart}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-mono font-medium transition-colors disabled:cursor-default"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-mono font-medium transition-colors disabled:cursor-default shrink-0"
             style={{
               background: allInCart ? "var(--success)" : "var(--accent)",
-              color: allInCart ? "var(--text)" : "var(--bg)",
+              color: allInCart ? "var(--success-text)" : "var(--accent-text)",
             }}
           >
             {allInCart ? (
@@ -645,21 +645,21 @@ function CategoryTile({ label, tag, icon: Icon, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="text-left p-3.5 rounded-sm border transition-all font-body group"
+      className="text-left p-3 sm:p-3.5 rounded-sm border transition-all font-body group min-w-0"
       style={{
         borderColor: active ? "var(--accent)" : "var(--border)",
         background: active ? "var(--card)" : "transparent",
       }}
     >
       <div className="flex items-center justify-between mb-2">
-        <Icon size={18} style={{ color: active ? "var(--accent)" : "var(--text-muted)" }} />
+        <Icon size={18} className="shrink-0" style={{ color: active ? "var(--accent)" : "var(--text-muted)" }} />
         <span
           className="font-mono text-[10px] tracking-wider opacity-40 group-hover:opacity-70"
         >
           {tag}
         </span>
       </div>
-      <div className="text-sm font-medium" style={{ color: active ? "var(--text)" : "var(--text-soft)" }}>
+      <div className="text-sm font-medium leading-snug" style={{ color: active ? "var(--text)" : "var(--text-soft)" }}>
         {label}
       </div>
     </button>
@@ -686,23 +686,23 @@ function VendorCard({ vendor, inCart, cartEntry, onSchedule }) {
         </span>
       </div>
 
-      <div className="p-4">
+      <div className="p-3.5 sm:p-4">
         <div className="flex items-start justify-between gap-2 mb-1.5">
-          <div className="font-display text-base font-medium leading-tight flex items-center gap-1.5">
-            {vendor.name}
+          <div className="font-display text-base font-medium leading-tight flex items-center gap-1.5 min-w-0">
+            <span className="truncate">{vendor.name}</span>
             {vendor.verified && (
-              <BadgeCheck size={14} style={{ color: "var(--success)" }} />
+              <BadgeCheck size={14} className="shrink-0" style={{ color: "var(--success)" }} />
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-3 text-xs opacity-70 mb-3 font-mono">
+        <div className="flex items-center gap-2.5 sm:gap-3 text-xs opacity-70 mb-3 font-mono flex-wrap">
           <span className="flex items-center gap-1">
             <Star size={11} fill="var(--accent)" stroke="none" /> {vendor.rating}
           </span>
           <span>{vendor.jobs} jobs</span>
-          <span className="flex items-center gap-1">
-            <MapPin size={11} /> {vendor.loc}
+          <span className="flex items-center gap-1 min-w-0">
+            <MapPin size={11} className="shrink-0" /> <span className="truncate">{vendor.loc}</span>
           </span>
         </div>
 
@@ -720,24 +720,24 @@ function VendorCard({ vendor, inCart, cartEntry, onSchedule }) {
 
         {scheduled && (
           <div
-            className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 rounded-sm font-mono text-[11px]"
-            style={{ background: "var(--bg)", border: "1px solid var(--success)", color: "var(--success-text)" }}
+            className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 rounded-sm font-mono text-[11px] flex-wrap"
+            style={{ background: "var(--bg)", border: "1px solid var(--success)", color: "var(--success)" }}
           >
             <Calendar size={11} /> {fmtDate(cartEntry.date)} · {cartEntry.time}
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <div className="font-mono">
-            <span className="text-lg font-semibold">{fmtMoney(vendor.rate)}</span>
+        <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+          <div className="font-mono shrink-0">
+            <span className="text-base sm:text-lg font-semibold">{fmtMoney(vendor.rate)}</span>
             <span className="text-xs opacity-50"> /{vendor.unit}</span>
           </div>
           <button
             onClick={onSchedule}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-mono font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-mono font-medium transition-colors shrink-0"
             style={{
               background: inCart ? "var(--success)" : "var(--accent)",
-              color: inCart ? "var(--text)" : "var(--bg)",
+              color: inCart ? "var(--success-text)" : "var(--accent-text)",
             }}
           >
             {inCart ? (
@@ -768,28 +768,28 @@ function SchedulePickerModal({ vendor, existing, onConfirm, onClose }) {
   const canConfirm = selectedDate && selectedTime;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-3 sm:px-4">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.65)" }} onClick={onClose} />
       <div
-        className="relative w-full max-w-md rounded-sm border font-body"
+        className="relative w-full max-w-md rounded-sm border font-body flex flex-col max-h-[90vh]"
         style={{ background: "var(--card)", borderColor: "var(--border)" }}
       >
         <div
-          className="flex items-center justify-between px-5 py-4 border-b"
+          className="flex items-center justify-between px-4 sm:px-5 py-4 border-b shrink-0"
           style={{ borderColor: "var(--border)" }}
         >
-          <div>
+          <div className="min-w-0 pr-3">
             <div className="font-mono text-[10px] tracking-widest opacity-50 mb-1">
               {catMeta(vendor.cat)?.tag} · LEAD TIME {leadLabel(vendor.lead)}
             </div>
-            <div className="font-display text-lg font-semibold">{vendor.name}</div>
+            <div className="font-display text-lg font-semibold truncate">{vendor.name}</div>
           </div>
-          <button onClick={onClose} className="opacity-60 hover:opacity-100">
+          <button onClick={onClose} className="opacity-60 hover:opacity-100 shrink-0">
             <X size={18} />
           </button>
         </div>
 
-        <div className="px-5 py-4">
+        <div className="px-4 sm:px-5 py-4 overflow-y-auto flex-1">
           <div className="font-mono text-xs tracking-widest opacity-50 mb-3">SELECT DATE</div>
           <div className="grid grid-cols-3 gap-2 mb-5">
             {dates.map((d) => {
@@ -798,10 +798,10 @@ function SchedulePickerModal({ vendor, existing, onConfirm, onClose }) {
                 <button
                   key={isoDate(d)}
                   onClick={() => setSelectedDate(d)}
-                  className="px-2 py-2.5 rounded-sm font-mono text-[11px] text-center transition-colors"
+                  className="px-1.5 py-2.5 rounded-sm font-mono text-[11px] text-center transition-colors truncate"
                   style={{
                     background: active ? "var(--accent)" : "var(--bg)",
-                    color: active ? "var(--bg)" : "var(--text-soft)",
+                    color: active ? "var(--accent-text)" : "var(--text-soft)",
                     border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
                   }}
                 >
@@ -822,7 +822,7 @@ function SchedulePickerModal({ vendor, existing, onConfirm, onClose }) {
                   className="px-2 py-2.5 rounded-sm font-mono text-[11px] text-center transition-colors"
                   style={{
                     background: active ? "var(--accent)" : "var(--bg)",
-                    color: active ? "var(--bg)" : "var(--text-soft)",
+                    color: active ? "var(--accent-text)" : "var(--text-soft)",
                     border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
                   }}
                 >
@@ -836,7 +836,7 @@ function SchedulePickerModal({ vendor, existing, onConfirm, onClose }) {
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="px-4 sm:px-5 py-4 border-t shrink-0" style={{ borderColor: "var(--border)" }}>
           <button
             disabled={!canConfirm}
             onClick={() => canConfirm && onConfirm(selectedDate, selectedTime)}
@@ -870,7 +870,7 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
         style={{ background: "var(--card)", borderLeft: "1px solid var(--border)" }}
       >
         <div
-          className="flex items-center justify-between px-5 py-4 border-b"
+          className="flex items-center justify-between px-4 sm:px-5 py-4 border-b"
           style={{ borderColor: "var(--border)" }}
         >
           <div>
@@ -884,7 +884,7 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4">
           {cart.length === 0 ? (
             <div className="text-center py-16">
               <ClipboardList size={28} className="mx-auto mb-3 opacity-30" />
@@ -957,7 +957,7 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
                         style={{
                           background: confirmed ? "var(--success)" : "transparent",
                           border: confirmed ? "none" : "1px solid var(--border)",
-                          color: confirmed ? "var(--text)" : "var(--text-muted)",
+                          color: confirmed ? "var(--success-text)" : "var(--text-muted)",
                         }}
                       >
                         {confirmed ? (
@@ -976,7 +976,7 @@ function RunOfShowDrawer({ cart, total, confirmedIds, toggleConfirm, removeFromC
         </div>
 
         {cart.length > 0 && (
-          <div className="px-5 py-4 border-t" style={{ borderColor: "var(--border)" }}>
+          <div className="px-4 sm:px-5 py-4 border-t" style={{ borderColor: "var(--border)" }}>
             <div className="flex items-center justify-between mb-3 font-mono text-sm">
               <span className="opacity-60">ESTIMATED TOTAL</span>
               <span className="text-lg font-semibold">{fmtMoney(total)}</span>
@@ -1017,16 +1017,16 @@ function VendorDashboard({ vendorProfile }) {
   const displayName = vendorProfile?.businessName || "Northbeam AV Co.";
 
   return (
-    <main className="max-w-6xl mx-auto px-5 pb-24 font-body">
-      <section className="py-10 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
-        <div>
+    <main className="max-w-6xl mx-auto px-4 sm:px-5 pb-24 font-body">
+      <section className="py-6 sm:py-10 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style={{ borderColor: "var(--border)" }}>
+        <div className="min-w-0">
           <div className="font-mono text-xs tracking-widest opacity-50 mb-2">VENDOR DESK</div>
-          <h1 className="font-display text-3xl font-semibold">{displayName}</h1>
-          <div className="flex items-center gap-3 mt-2 font-mono text-xs opacity-60">
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold break-words">{displayName}</h1>
+          <div className="flex items-center gap-3 mt-2 font-mono text-xs opacity-60 flex-wrap">
             {isNew ? (
               <>
                 <span>{catMeta(vendorProfile.category)?.tag || "NEW"}</span>
-                <span>{vendorProfile.serviceArea}</span>
+                <span className="truncate max-w-[160px]">{vendorProfile.serviceArea}</span>
                 <span className="flex items-center gap-1" style={{ color: "var(--accent)" }}>
                   <Clock size={11} /> Pending verification
                 </span>
@@ -1045,7 +1045,7 @@ function VendorDashboard({ vendorProfile }) {
           </div>
         </div>
         <button
-          className="flex items-center gap-2 px-4 py-2 rounded-sm font-mono text-xs font-medium"
+          className="flex items-center justify-center gap-2 px-4 py-2 rounded-sm font-mono text-xs font-medium shrink-0 self-start sm:self-auto"
           style={{ background: "var(--accent)", color: "var(--accent-text)" }}
         >
           <Plus size={14} /> NEW LISTING
@@ -1098,37 +1098,67 @@ function VendorBookings() {
     completed: "var(--text-muted)",
   };
   return (
-    <div className="rounded-sm border overflow-hidden" style={{ borderColor: "var(--border)" }}>
-      <div
-        className="grid grid-cols-12 px-4 py-2.5 font-mono text-[10px] tracking-widest opacity-50 border-b"
-        style={{ borderColor: "var(--border)", background: "var(--card)" }}
-      >
-        <div className="col-span-2">ID</div>
-        <div className="col-span-4">CLIENT</div>
-        <div className="col-span-3">ITEM</div>
-        <div className="col-span-2">DATE</div>
-        <div className="col-span-1 text-right">STATUS</div>
+    <>
+      {/* Mobile: stacked cards */}
+      <div className="sm:hidden space-y-2.5">
+        {SAMPLE_BOOKINGS.map((b) => (
+          <div
+            key={b.id}
+            className="rounded-sm border px-3.5 py-3 font-mono"
+            style={{ borderColor: "var(--border)", background: "var(--card)" }}
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] opacity-50">{b.id}</span>
+              <span className="text-[11px]" style={{ color: statusColor[b.status] }}>
+                ● {b.status}
+              </span>
+            </div>
+            <div className="font-body text-sm mb-1" style={{ color: "var(--text)" }}>
+              {b.client}
+            </div>
+            <div className="flex items-center justify-between text-[11px] opacity-70">
+              <span>{b.item}</span>
+              <span className="flex items-center gap-1">
+                <Calendar size={11} /> {b.date}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
-      {SAMPLE_BOOKINGS.map((b) => (
+
+      {/* Desktop / tablet: table */}
+      <div className="hidden sm:block rounded-sm border overflow-hidden" style={{ borderColor: "var(--border)" }}>
         <div
-          key={b.id}
-          className="grid grid-cols-12 px-4 py-3.5 font-mono text-xs items-center border-b last:border-b-0"
-          style={{ borderColor: "var(--border-soft)" }}
+          className="grid grid-cols-12 px-4 py-2.5 font-mono text-[10px] tracking-widest opacity-50 border-b"
+          style={{ borderColor: "var(--border)", background: "var(--card)" }}
         >
-          <div className="col-span-2 opacity-60">{b.id}</div>
-          <div className="col-span-4 font-body text-sm" style={{ color: "var(--text)" }}>
-            {b.client}
-          </div>
-          <div className="col-span-3 opacity-70">{b.item}</div>
-          <div className="col-span-2 opacity-70 flex items-center gap-1">
-            <Calendar size={11} /> {b.date}
-          </div>
-          <div className="col-span-1 text-right">
-            <span style={{ color: statusColor[b.status] }}>● {b.status}</span>
-          </div>
+          <div className="col-span-2">ID</div>
+          <div className="col-span-4">CLIENT</div>
+          <div className="col-span-3">ITEM</div>
+          <div className="col-span-2">DATE</div>
+          <div className="col-span-1 text-right">STATUS</div>
         </div>
-      ))}
-    </div>
+        {SAMPLE_BOOKINGS.map((b) => (
+          <div
+            key={b.id}
+            className="grid grid-cols-12 px-4 py-3.5 font-mono text-xs items-center border-b last:border-b-0"
+            style={{ borderColor: "var(--border-soft)" }}
+          >
+            <div className="col-span-2 opacity-60">{b.id}</div>
+            <div className="col-span-4 font-body text-sm" style={{ color: "var(--text)" }}>
+              {b.client}
+            </div>
+            <div className="col-span-3 opacity-70">{b.item}</div>
+            <div className="col-span-2 opacity-70 flex items-center gap-1">
+              <Calendar size={11} /> {b.date}
+            </div>
+            <div className="col-span-1 text-right">
+              <span style={{ color: statusColor[b.status] }}>● {b.status}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -1157,7 +1187,7 @@ function VendorListings() {
 function LandingChoice({ theme, setTheme, onPickCustomer, onPickVendor, onSkip }) {
   return (
     <div className="min-h-screen flex flex-col font-body">
-      <div className="flex items-center justify-between px-5 py-5 max-w-4xl mx-auto w-full">
+      <div className="flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 max-w-4xl mx-auto w-full">
         <div className="flex items-center gap-2.5">
           <div
             className="w-8 h-8 rounded-sm flex items-center justify-center font-mono text-xs font-bold"
@@ -1179,13 +1209,13 @@ function LandingChoice({ theme, setTheme, onPickCustomer, onPickVendor, onSkip }
         </button>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-5">
-        <div className="max-w-3xl w-full py-10">
-          <div className="text-center mb-12">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-5">
+        <div className="max-w-3xl w-full py-8 sm:py-10">
+          <div className="text-center mb-8 sm:mb-12">
             <div className="font-mono text-xs tracking-widest opacity-50 mb-3">
               WELCOME TO THE PRODUCTION SHEET
             </div>
-            <h1 className="font-display text-4xl md:text-5xl font-semibold leading-[1.05] mb-3">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold leading-[1.08] mb-3">
               Who's calling this show?
             </h1>
             <p className="font-body text-sm md:text-base opacity-70 max-w-md mx-auto">
@@ -1193,7 +1223,7 @@ function LandingChoice({ theme, setTheme, onPickCustomer, onPickVendor, onSkip }
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4">
             <RoleCard
               tag="ROLE-A"
               icon={PartyPopper}
@@ -1230,7 +1260,7 @@ function RoleCard({ tag, icon: Icon, title, desc, cta, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="text-left p-6 rounded-sm border transition-all group"
+      className="text-left p-5 sm:p-6 rounded-sm border transition-all group w-full"
       style={{ borderColor: "var(--border)", background: "var(--card)" }}
     >
       <div
@@ -1246,7 +1276,7 @@ function RoleCard({ tag, icon: Icon, title, desc, cta, onClick }) {
       >
         <Icon size={20} style={{ color: "var(--accent)" }} />
       </div>
-      <div className="font-display text-xl font-semibold mb-2">{title}</div>
+      <div className="font-display text-lg sm:text-xl font-semibold mb-2">{title}</div>
       <p className="text-sm opacity-70 leading-relaxed mb-5">{desc}</p>
       <div
         className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm font-mono text-[11px] font-medium tracking-wide"
@@ -1331,7 +1361,7 @@ function CustomerOnboarding({ onBack, onComplete }) {
                 <button
                   key={t}
                   onClick={() => update("eventType", t)}
-                  className="px-3 py-2.5 rounded-sm font-mono text-xs text-left transition-colors"
+                  className="px-3 py-2.5 rounded-sm font-mono text-xs text-left transition-colors truncate"
                   style={{
                     background: form.eventType === t ? "var(--accent)" : "var(--card)",
                     color: form.eventType === t ? "var(--accent-text)" : "var(--text-soft)",
@@ -1484,15 +1514,15 @@ function VendorOnboarding({ onBack, onComplete }) {
                 <button
                   key={c.id}
                   onClick={() => update("category", c.id)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-sm font-mono text-xs text-left transition-colors"
+                  className="flex items-center gap-2 px-2.5 sm:px-3 py-2.5 rounded-sm font-mono text-[11px] sm:text-xs text-left transition-colors min-w-0"
                   style={{
                     background: form.category === c.id ? "var(--accent)" : "var(--card)",
                     color: form.category === c.id ? "var(--accent-text)" : "var(--text-soft)",
                     border: `1px solid ${form.category === c.id ? "var(--accent)" : "var(--border)"}`,
                   }}
                 >
-                  <c.icon size={14} />
-                  {c.label}
+                  <c.icon size={14} className="shrink-0" />
+                  <span className="truncate">{c.label}</span>
                 </button>
               ))}
             </div>
@@ -1549,12 +1579,12 @@ function VendorOnboarding({ onBack, onComplete }) {
           </div>
           <div>
             <FieldLabel label="Billed per" />
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-2 flex-wrap">
               {UNIT_OPTIONS.map((u) => (
                 <button
                   key={u}
                   onClick={() => update("unit", u)}
-                  className="px-3 py-2 rounded-sm font-mono text-xs transition-colors"
+                  className="px-3 py-2 rounded-sm font-mono text-xs transition-colors whitespace-nowrap"
                   style={{
                     background: form.unit === u ? "var(--accent)" : "var(--card)",
                     color: form.unit === u ? "var(--accent-text)" : "var(--text-soft)",
@@ -1575,8 +1605,8 @@ function VendorOnboarding({ onBack, onComplete }) {
               step="12"
               value={form.leadHours}
               onChange={(e) => update("leadHours", Number(e.target.value))}
-              className="w-full mt-3 accent-current"
-              style={{ color: "var(--accent)" }}
+              className="w-full mt-4 accent-current touch-none"
+              style={{ color: "var(--accent)", height: "20px" }}
             />
             <div className="flex justify-between font-mono text-[10px] opacity-40 mt-1">
               <span>12H</span>
@@ -1660,7 +1690,7 @@ function VendorOnboarding({ onBack, onComplete }) {
 function OnboardingShell({ eyebrow, title, steps, currentStep, onBack, children }) {
   return (
     <div className="min-h-screen flex flex-col font-body">
-      <div className="max-w-xl mx-auto w-full px-5 py-8 flex-1 flex flex-col">
+      <div className="max-w-xl mx-auto w-full px-4 sm:px-5 py-6 sm:py-8 flex-1 flex flex-col">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 font-mono text-xs opacity-50 hover:opacity-90 transition-opacity mb-6 self-start"
@@ -1709,7 +1739,7 @@ function FieldLabel({ label, required }) {
 function TextInput({ icon: Icon, value, onChange, placeholder, type = "text", onEnter }) {
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2.5 rounded-sm border mt-2"
+      className="flex items-center gap-2 px-3 py-2.5 rounded-sm border mt-2 flex-1 min-w-0"
       style={{ borderColor: "var(--border)", background: "var(--card)" }}
     >
       {Icon && <Icon size={15} className="opacity-50 shrink-0" />}
@@ -1734,11 +1764,11 @@ function TextInput({ icon: Icon, value, onChange, placeholder, type = "text", on
 function SummaryRow({ label, value }) {
   return (
     <div
-      className="flex items-center justify-between px-3.5 py-2.5 rounded-sm border"
+      className="flex items-start justify-between gap-3 px-3.5 py-2.5 rounded-sm border"
       style={{ borderColor: "var(--border)", background: "var(--card)" }}
     >
-      <span className="font-mono text-[11px] tracking-wide opacity-50">{label.toUpperCase()}</span>
-      <span className="font-body text-sm text-right" style={{ color: "var(--text)" }}>{value}</span>
+      <span className="font-mono text-[11px] tracking-wide opacity-50 shrink-0 pt-0.5">{label.toUpperCase()}</span>
+      <span className="font-body text-sm text-right break-words" style={{ color: "var(--text)" }}>{value}</span>
     </div>
   );
 }
@@ -1765,19 +1795,19 @@ function OnboardingFooter({ step, totalSteps, canAdvance, onNext, nextLabel }) {
 function OnboardingSuccess({ role, profile, onContinue }) {
   const isVendor = role === "vendor";
   return (
-    <div className="min-h-screen flex items-center justify-center px-5 font-body">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-5 py-8 font-body overflow-y-auto">
       <div className="max-w-md w-full text-center">
         <div
-          className="w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center"
+          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full mx-auto mb-6 flex items-center justify-center"
           style={{ background: "var(--success)" }}
         >
-          <Check size={28} style={{ color: "var(--success-text)" }} />
+          <Check size={26} style={{ color: "var(--success-text)" }} />
         </div>
 
         <div className="font-mono text-xs tracking-widest opacity-50 mb-2">
           {isVendor ? "LISTING SUBMITTED" : "ACCOUNT CREATED"}
         </div>
-        <h1 className="font-display text-2xl md:text-3xl font-semibold mb-3">
+        <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-semibold mb-3 break-words">
           {isVendor
             ? `Welcome to the crew, ${profile?.businessName || "vendor"}.`
             : `You're all set, ${profile?.fullName?.split(" ")[0] || "there"}.`}
